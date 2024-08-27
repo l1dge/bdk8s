@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: synergychat-api
+  labels:
+    app: synergychat-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: synergychat-api
+  template:
+    metadata:
+      labels:
+        app: synergychat-api
+    spec:
+      volumes:
+        - name: synergychat-api-volume
+          persistentVolumeClaim:
+            claimName: synergychat-api-pvc
+      containers:
+        - name: synergychat-api
+          image: bootdotdev/synergychat-api:latest
+          volumeMounts:
+            - name: synergychat-api-volume
+              mountPath: /persist
+          env:
+            - name: API_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: synergychat-api-configmap
+                  key: API_PORT
+            - name: API_DB_FILEPATH
+              valueFrom:
+                configMapKeyRef:
+                  name: synergychat-api-configmap
+                  key: API_DB_FILEPATH
+            - name: CRAWLER_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: synergychat-api-configmap
+                  key: CRAWLER_BASE_URL
+      dnsConfig:
+        searches:
+          - default.svc.cluster.local
+          - crawler.svc.cluster.local
+          - svc.cluster.local
+          - cluster.local
